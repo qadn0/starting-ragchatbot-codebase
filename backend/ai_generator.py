@@ -1,9 +1,11 @@
+from typing import Any, Dict, List, Optional
+
 import anthropic
-from typing import List, Optional, Dict, Any
+
 
 class AIGenerator:
     """Handles interactions with Anthropic's Claude API for generating responses"""
-    
+
     # Static system prompt to avoid rebuilding on each call
     SYSTEM_PROMPT = """ You are an AI assistant specialized in course materials and educational content with access to tools for course information.
 
@@ -32,23 +34,22 @@ All responses must be:
 4. **Example-supported** - Include relevant examples when they aid understanding
 Provide only the direct answer to what was asked.
 """
-    
+
     def __init__(self, api_key: str, model: str, max_tool_rounds: int = 2):
         self.client = anthropic.Anthropic(api_key=api_key)
         self.model = model
         self.max_tool_rounds = max_tool_rounds
 
         # Pre-build base API parameters
-        self.base_params = {
-            "model": self.model,
-            "temperature": 0,
-            "max_tokens": 800
-        }
-    
-    def generate_response(self, query: str,
-                         conversation_history: Optional[str] = None,
-                         tools: Optional[List] = None,
-                         tool_manager=None) -> str:
+        self.base_params = {"model": self.model, "temperature": 0, "max_tokens": 800}
+
+    def generate_response(
+        self,
+        query: str,
+        conversation_history: Optional[str] = None,
+        tools: Optional[List] = None,
+        tool_manager=None,
+    ) -> str:
         """
         Generate AI response with support for up to max_tool_rounds of sequential tool calling.
 
@@ -75,9 +76,7 @@ Provide only the direct answer to what was asked.
         # If no tools provided, make direct API call
         if not tools or not tool_manager:
             response = self.client.messages.create(
-                **self.base_params,
-                messages=messages,
-                system=system_content
+                **self.base_params, messages=messages, system=system_content
             )
             return self._extract_text_response(response)
 
@@ -89,7 +88,7 @@ Provide only the direct answer to what was asked.
                 "messages": messages,
                 "system": system_content,
                 "tools": tools,
-                "tool_choice": {"type": "auto"}
+                "tool_choice": {"type": "auto"},
             }
 
             response = self.client.messages.create(**api_params)
@@ -125,23 +124,26 @@ Provide only the direct answer to what was asked.
             if content_block.type == "tool_use":
                 try:
                     tool_result = tool_manager.execute_tool(
-                        content_block.name,
-                        **content_block.input
+                        content_block.name, **content_block.input
                     )
 
-                    tool_results.append({
-                        "type": "tool_result",
-                        "tool_use_id": content_block.id,
-                        "content": tool_result
-                    })
+                    tool_results.append(
+                        {
+                            "type": "tool_result",
+                            "tool_use_id": content_block.id,
+                            "content": tool_result,
+                        }
+                    )
                 except Exception as e:
                     # Add error as tool result for graceful degradation
-                    tool_results.append({
-                        "type": "tool_result",
-                        "tool_use_id": content_block.id,
-                        "content": f"Error executing tool: {str(e)}",
-                        "is_error": True
-                    })
+                    tool_results.append(
+                        {
+                            "type": "tool_result",
+                            "tool_use_id": content_block.id,
+                            "content": f"Error executing tool: {str(e)}",
+                            "is_error": True,
+                        }
+                    )
 
         return tool_results
 
@@ -156,16 +158,18 @@ Provide only the direct answer to what was asked.
             Text string from response
         """
         for content_block in response.content:
-            if hasattr(content_block, 'type') and content_block.type == "text":
+            if hasattr(content_block, "type") and content_block.type == "text":
                 return content_block.text
-            elif hasattr(content_block, 'text'):
+            elif hasattr(content_block, "text"):
                 # Handle mock objects or direct text attributes
                 return content_block.text
 
         # Fallback if no text found
         return "I apologize, but I couldn't generate a response."
 
-    def _make_final_call(self, messages: List[Dict[str, Any]], system_content: str) -> str:
+    def _make_final_call(
+        self, messages: List[Dict[str, Any]], system_content: str
+    ) -> str:
         """
         Make final API call without tools to force Claude to provide an answer.
 
@@ -179,7 +183,7 @@ Provide only the direct answer to what was asked.
         final_params = {
             **self.base_params,
             "messages": messages,
-            "system": system_content
+            "system": system_content,
             # Explicitly no tools parameter
         }
 
