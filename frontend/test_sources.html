@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Sources Rendering</title>
+</head>
+<body>
+    <h1>Test Sources Rendering</h1>
+    <div id="output"></div>
+
+    <script>
+        // Simulate the API response
+        const sources = [
+            {"text":"MCP: Build Rich-Context AI Apps with Anthropic - Lesson 8","link":"https://learn.deeplearning.ai/courses/mcp-build-rich-context-ai-apps-with-anthropic/lesson/l8ms0/configuring-servers-for-claude-desktop"},
+            {"text":"MCP: Build Rich-Context AI Apps with Anthropic - Lesson 1","link":"https://learn.deeplearning.ai/courses/mcp-build-rich-context-ai-apps-with-anthropic/lesson/ccsd0/why-mcp"}
+        ];
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Test the rendering logic
+        const sourcesHtml = sources.map(source => {
+            if (typeof source === 'object' && source !== null) {
+                if (source.link) {
+                    return `<a href="${escapeHtml(source.link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(source.text)}</a>`;
+                } else {
+                    return escapeHtml(source.text);
+                }
+            } else {
+                return escapeHtml(source);
+            }
+        }).join(', ');
+
+        document.getElementById('output').innerHTML = sourcesHtml;
+    </script>
+</body>
+</html>
