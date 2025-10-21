@@ -1,16 +1,17 @@
 """Pytest configuration and fixtures for RAG system tests"""
-import pytest
-from unittest.mock import Mock, MagicMock
-from typing import List, Dict, Any
-import tempfile
-import shutil
-from pathlib import Path
 
-from models import Course, Lesson, CourseChunk
-from vector_store import VectorStore, SearchResults
-from search_tools import CourseSearchTool, ToolManager
+import shutil
+import tempfile
+from pathlib import Path
+from typing import Any, Dict, List
+from unittest.mock import MagicMock, Mock
+
+import pytest
 from ai_generator import AIGenerator
 from config import Config
+from models import Course, CourseChunk, Lesson
+from search_tools import CourseSearchTool, ToolManager
+from vector_store import SearchResults, VectorStore
 
 
 @pytest.fixture
@@ -21,9 +22,17 @@ def sample_course():
         course_link="https://example.com/mcp",
         instructor="John Doe",
         lessons=[
-            Lesson(lesson_number=1, title="Getting Started", lesson_link="https://example.com/mcp/lesson1"),
-            Lesson(lesson_number=2, title="Advanced Topics", lesson_link="https://example.com/mcp/lesson2")
-        ]
+            Lesson(
+                lesson_number=1,
+                title="Getting Started",
+                lesson_link="https://example.com/mcp/lesson1",
+            ),
+            Lesson(
+                lesson_number=2,
+                title="Advanced Topics",
+                lesson_link="https://example.com/mcp/lesson2",
+            ),
+        ],
     )
 
 
@@ -35,20 +44,20 @@ def sample_chunks():
             content="Lesson 1 content: This is an introduction to MCP. It covers basic concepts.",
             course_title="Introduction to MCP",
             lesson_number=1,
-            chunk_index=0
+            chunk_index=0,
         ),
         CourseChunk(
             content="MCP stands for Model Context Protocol. It helps with integration.",
             course_title="Introduction to MCP",
             lesson_number=1,
-            chunk_index=1
+            chunk_index=1,
         ),
         CourseChunk(
             content="Lesson 2 content: Advanced MCP features include streaming and caching.",
             course_title="Introduction to MCP",
             lesson_number=2,
-            chunk_index=2
-        )
+            chunk_index=2,
+        ),
     ]
 
 
@@ -58,13 +67,21 @@ def sample_search_results():
     return SearchResults(
         documents=[
             "Lesson 1 content: This is an introduction to MCP. It covers basic concepts.",
-            "MCP stands for Model Context Protocol. It helps with integration."
+            "MCP stands for Model Context Protocol. It helps with integration.",
         ],
         metadata=[
-            {"course_title": "Introduction to MCP", "lesson_number": 1, "chunk_index": 0},
-            {"course_title": "Introduction to MCP", "lesson_number": 1, "chunk_index": 1}
+            {
+                "course_title": "Introduction to MCP",
+                "lesson_number": 1,
+                "chunk_index": 0,
+            },
+            {
+                "course_title": "Introduction to MCP",
+                "lesson_number": 1,
+                "chunk_index": 1,
+            },
         ],
-        distances=[0.1, 0.2]
+        distances=[0.1, 0.2],
     )
 
 
@@ -149,9 +166,7 @@ def test_config(temp_chroma_db):
 def real_vector_store(temp_chroma_db, sample_course, sample_chunks):
     """Real VectorStore instance with test data"""
     store = VectorStore(
-        chroma_path=temp_chroma_db,
-        embedding_model="all-MiniLM-L6-v2",
-        max_results=5
+        chroma_path=temp_chroma_db, embedding_model="all-MiniLM-L6-v2", max_results=5
     )
 
     # Add test data

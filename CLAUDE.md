@@ -27,7 +27,34 @@ uv sync
 
 # Add a new package
 uv add <package-name>
+
+# Add a development dependency
+uv add --dev <package-name>
 ```
+
+### Code Quality
+```bash
+# Format code (black + isort)
+./scripts/format.sh
+
+# Run linters (flake8 + mypy)
+./scripts/lint.sh
+
+# Run all quality checks (without auto-fixing)
+./scripts/check.sh
+
+# Individual tools
+uv run black backend/          # Format code
+uv run isort backend/          # Sort imports
+uv run flake8 backend/         # Lint code
+uv run mypy backend/           # Type check
+```
+
+**Quality Tools Configuration**:
+- **black**: Line length 88, Python 3.13 target (configured in `pyproject.toml`)
+- **isort**: Black-compatible profile (configured in `pyproject.toml`)
+- **flake8**: Compatible with black, ignores E203/W503 (configured in `.flake8`)
+- **mypy**: Lenient settings, ignores missing imports (configured in `pyproject.toml`)
 
 ### Environment Setup
 Required `.env` file in root:
